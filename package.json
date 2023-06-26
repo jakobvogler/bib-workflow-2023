@@ -1,0 +1,38 @@
+{
+  "name": "bib-workflow",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "pretty": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start -p 8080",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@chakra-ui/icons": "^2.0.19",
+    "@chakra-ui/react": "^2.7.1",
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "framer-motion": "^10.12.17",
+    "joi": "^17.9.1",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^7.0.3",
+    "next": "13.2.4",
+    "next-connect": "^0.13.0",
+    "next-joi": "^2.2.1",
+    "node-html-parser": "^6.1.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.2",
+    "@types/node": "18.15.11",
+    "@types/react": "18.2.13",
+    "eslint": "8.37.0",
+    "eslint-config-next": "13.2.4",
+    "prettier": "^2.8.7",
+    "prettier-plugin-organize-imports": "^3.2.2",
+    "typescript": "5.0.3"
+  }
+}

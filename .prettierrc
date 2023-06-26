@@ -1,0 +1,8 @@
+{
+  "printWidth": 120,
+  "trailingComma": "all",
+  "semi": false,
+  "bracketSpacing": false,
+  "pluginSearchDirs": ["./node_modules"],
+  "plugins": ["prettier-plugin-organize-imports"]
+}
