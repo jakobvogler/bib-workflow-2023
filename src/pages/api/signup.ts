@@ -8,6 +8,7 @@ import validate from "../../server/lib/middlewares/validation"
 export interface SignupPayload {
   email: string
   password: string
+  code: string
 }
 
 export interface SignupResponse {
@@ -21,10 +22,18 @@ router.post(
     body: Joi.object({
       email: Joi.string().email().required(),
       password: Joi.string().min(4).max(128).required(),
+      code: Joi.string().required(),
     }),
   }),
   async (req: NextApiRequest & {body: SignupPayload}, res: NextApiResponse<SignupResponse | ErrorResponse>) => {
     const database = await connectDatabase()
+
+    const invite = await database.inviteModel.findOne({code: req.body.code})
+
+    if (!invite || !invite.active || invite.usages >= invite.maxUsages) {
+      return res.status(403).json({error: "Invalid Invite", message: "Invite code is invalid"})
+    }
+
     const user = await database.userModel.findOne({email: req.body.email})
 
     if (user) {
@@ -36,9 +45,12 @@ router.post(
     const newUser = {
       email: req.body.email,
       password: password,
+      invite: String(invite._id),
     }
 
     await database.userModel.create(newUser)
+
+    await database.inviteModel.findOneAndUpdate({_id: invite._id}, {usages: invite.usages + 1})
 
     res.status(201).json({success: true})
   },

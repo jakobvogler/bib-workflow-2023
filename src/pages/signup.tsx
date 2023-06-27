@@ -9,6 +9,7 @@ export default function SignupView() {
   const [email, setEmail] = useState<string>("")
   const [password, setPassword] = useState<string>("")
   const [passwordRepeat, setPasswordRepeat] = useState<string>("")
+  const [code, setCode] = useState<string>("")
 
   const signup = async () => {
     const response = await fetch("/api/signup", {
@@ -17,7 +18,7 @@ export default function SignupView() {
         accept: "application/json",
         "content-type": "application/json",
       },
-      body: JSON.stringify({email, password}),
+      body: JSON.stringify({email, password, code}),
     })
 
     const out = await response.json()
@@ -48,19 +49,25 @@ export default function SignupView() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </Box>
-        (
         <Box>
           <FormLabel>Password Repeat</FormLabel>
           <Input
             type={"password"}
-            placeholder={"Password Repeat"}
+            placeholder={"password repeat"}
             value={passwordRepeat}
             isInvalid={passwordRepeatInvalid}
             onChange={(e) => setPasswordRepeat(e.target.value)}
+          />
+        </Box>
+        <Box>
+          <FormLabel>Invite Code</FormLabel>
+          <Input
+            placeholder={"code"}
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && signup()}
           />
         </Box>
-        )
         <Link w={"fit-content"} href={"/login"}>
           login?
         </Link>

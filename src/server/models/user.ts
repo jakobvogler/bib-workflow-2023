@@ -12,6 +12,10 @@ export interface IUser extends Mongoose.Document {
 
   permanentSeat?: string
 
+  invite?: string
+
+  admin?: boolean
+
   createdAt: Date
   updatedAt: Date
 }
@@ -27,6 +31,10 @@ export const UserSchema = new Mongoose.Schema(
     libraryPassword: {type: String, required: false},
 
     permanentSeat: {type: String, required: false},
+
+    invite: {type: String, required: false},
+
+    admin: {type: Boolean, required: false},
   },
   {
     timestamps: true,

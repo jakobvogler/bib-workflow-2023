@@ -1,9 +1,11 @@
 import * as Mongoose from "mongoose"
 import getConfig from "next/config"
+import {IInvite, createInviteModel} from "./models/invite"
 import {IUser, createUserModel} from "./models/user"
 
 export interface IDatabase {
   userModel: Mongoose.Model<IUser>
+  inviteModel: Mongoose.Model<IInvite>
   connection: Mongoose.Connection
 }
 
@@ -31,6 +33,7 @@ export async function connectDatabase() {
 
   return {
     userModel: createUserModel(connection),
+    inviteModel: createInviteModel(connection),
     connection: connection,
   }
 }
