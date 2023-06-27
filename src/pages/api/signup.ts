@@ -1,9 +1,8 @@
 import {connectDatabase} from "@/server/database"
-import {ErrorResponse} from "@/server/lib/middlewares/error"
+import {ErrorResponse, createRouter} from "@/server/lib/middlewares/errors"
 import {createHash} from "crypto"
 import Joi from "joi"
 import type {NextApiRequest, NextApiResponse} from "next"
-import nextConnect from "next-connect"
 import validate from "../../server/lib/middlewares/validation"
 
 export interface SignupPayload {
@@ -15,7 +14,7 @@ export interface SignupResponse {
   success: boolean
 }
 
-const router = nextConnect()
+const router = createRouter()
 
 router.post(
   validate({

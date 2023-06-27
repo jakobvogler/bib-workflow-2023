@@ -1,10 +1,9 @@
 import {connectDatabase} from "@/server/database"
-import {ErrorResponse} from "@/server/lib/middlewares/error"
+import {ErrorResponse, createRouter} from "@/server/lib/middlewares/errors"
 import {createHash} from "crypto"
 import Joi from "joi"
 import jwt from "jsonwebtoken"
 import type {NextApiRequest, NextApiResponse} from "next"
-import nextConnect from "next-connect"
 import getConfig from "next/config"
 import validate from "../../server/lib/middlewares/validation"
 
@@ -18,7 +17,7 @@ export interface LoginResponse {
 }
 
 const {serverRuntimeConfig} = getConfig()
-const router = nextConnect()
+const router = createRouter()
 
 router.post(
   validate({

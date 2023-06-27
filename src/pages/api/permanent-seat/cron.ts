@@ -1,10 +1,9 @@
 import {PermanentSeatReserver} from "@/server/PermanentSeatReserver"
 import {connectDatabase} from "@/server/database"
-import {ErrorResponse} from "@/server/lib/middlewares/error"
+import {ErrorResponse, createRouter} from "@/server/lib/middlewares/errors"
 import type {NextApiRequest, NextApiResponse} from "next"
-import nextConnect from "next-connect"
 
-const router = nextConnect()
+const router = createRouter()
 
 router.get(async (req: NextApiRequest, res: NextApiResponse<any | ErrorResponse>) => {
   const database = await connectDatabase()

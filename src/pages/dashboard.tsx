@@ -1,12 +1,26 @@
 import {APIService} from "@/client/APIService"
+import {isValidToken} from "@/client/token"
 import {IUser} from "@/server/models/user"
-import {ArrowForwardIcon, CloseIcon, SunIcon} from "@chakra-ui/icons"
-import {Box, Button, FormControl, FormHelperText, FormLabel, HStack, Heading, Input, Stack} from "@chakra-ui/react"
+import {CloseIcon} from "@chakra-ui/icons"
+import {
+  Badge,
+  Box,
+  Button,
+  FormControl,
+  FormHelperText,
+  FormLabel,
+  HStack,
+  Heading,
+  Input,
+  Stack,
+  useToast,
+} from "@chakra-ui/react"
 import {useRouter} from "next/router"
 import {useEffect, useState} from "react"
 
 export default function DashboardView() {
   const router = useRouter()
+  const toast = useToast()
 
   const [token, setToken] = useState<string>("")
   const [user, setUser] = useState<IUser>()
@@ -20,58 +34,60 @@ export default function DashboardView() {
       const user = (await APIService.getUser()) as IUser
       setUser(user)
     } catch (e) {
-      alert("Error loading user")
+      toast({
+        title: "Error loading user",
+        position: "top-right",
+        status: "error",
+        isClosable: true,
+      })
     }
   }
 
   const update = async () => {
-    const response = await fetch("/api/user", {
-      method: "PUT",
-      headers: {
-        accept: "application/json",
-        "content-type": "application/json",
-        authorization: "Bearer " + token,
-      },
-      body: JSON.stringify({libraryIdentifier, libraryPassword, permanentSeat}),
+    toast({
+      id: "update",
+      title: "Updating",
+      position: "top-right",
+      status: "loading",
+      isClosable: false,
     })
 
-    const out = await response.json()
-    if (out.error) {
-      alert(out.error + (out.message ? `: ${out.message}` : ""))
-      return
+    try {
+      const user = (await APIService.updateUser({libraryIdentifier, libraryPassword, permanentSeat})) as IUser
+      setUser(user)
+      toast.update("update", {title: "Successs", status: "success"})
+    } catch (e: any) {
+      toast.update("update", {title: e.body?.error, description: e.body?.message, status: "error"})
     }
-
-    setUser(out)
   }
 
   const disable = async () => {
-    const response = await fetch("/api/permanent-seat/disable", {
-      method: "GET",
-      headers: {
-        accept: "application/json",
-        authorization: "Bearer " + token,
-      },
+    toast({
+      id: "disable",
+      title: "Disabling",
+      position: "top-right",
+      status: "loading",
+      isClosable: false,
     })
 
-    const out = await response.json()
-    if (out.error) {
-      alert(out.error + (out.message ? `: ${out.message}` : ""))
-      return
+    try {
+      const user = (await APIService.disablePermanentSeat()) as IUser
+      setUser(user)
+      toast.update("disable", {title: "Successs", status: "success"})
+    } catch (e) {
+      toast.update("disable", {title: "Error disabling", status: "error"})
     }
-
-    setUser(out)
   }
 
   useEffect(() => {
-    const token = localStorage.getItem("token")
+    getUser()
+  }, [])
 
-    if (!token) {
+  useEffect(() => {
+    if (!isValidToken()) {
       router.push("/login")
     }
-
-    getUser()
-    setToken(token!)
-  }, [])
+  })
 
   useEffect(() => {
     if (!user) {
@@ -86,10 +102,11 @@ export default function DashboardView() {
   return (
     <FormControl isRequired>
       <Stack maxW={"80"} spacing={"4"}>
-        <HStack>
-          <Heading>Dashboard</Heading>
-          {user?.active ? <SunIcon color={"green"} /> : <CloseIcon color={"red"} />}
-        </HStack>
+        <Box w={"fit-content"}>
+          {user?.active && <Badge colorScheme="green">active</Badge>}
+          {!user?.active && <Badge colorScheme="red">inactive</Badge>}
+          <Heading pr={"4"}>Dashboard</Heading>
+        </Box>
         <Box>
           <FormLabel>Library Identifier</FormLabel>
           <Input
@@ -114,7 +131,7 @@ export default function DashboardView() {
           <FormHelperText>Please put here the roomId, first floor only</FormHelperText>
         </Box>
         <HStack>
-          <Button type={"submit"} rightIcon={<ArrowForwardIcon />} colorScheme={"blue"} onClick={update}>
+          <Button type={"submit"} colorScheme={"blue"} onClick={update}>
             Update
           </Button>
           <Button onClick={disable}>

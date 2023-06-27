@@ -1,5 +1,5 @@
 export class HttpError extends Error {
-  constructor(public status: number, body?: any) {
+  constructor(public status: number, public body?: any) {
     super("HttpError")
   }
 }
