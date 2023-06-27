@@ -1,5 +1,6 @@
 import {connectDatabase} from "@/server/database"
 import {ErrorResponse} from "@/server/lib/middlewares/error"
+import {LibraryService} from "@/server/services/LibraryService"
 import Joi from "joi"
 import jwt from "jsonwebtoken"
 import type {NextApiRequest, NextApiResponse} from "next"
@@ -38,6 +39,14 @@ router.get(
   },
 )
 
+interface UpdateUserRequest extends NextApiRequest {
+  body: {
+    libraryIdentifier: string
+    libraryPassword: string
+    permanentSeat: string
+  }
+}
+
 router.put(
   validate({
     headers: Joi.object({
@@ -46,9 +55,10 @@ router.put(
     body: Joi.object({
       libraryIdentifier: Joi.string().required(),
       libraryPassword: Joi.string().required(),
+      permanentSeat: Joi.string().required(),
     }),
   }),
-  async (req: NextApiRequest, res: NextApiResponse<any | ErrorResponse>) => {
+  async (req: UpdateUserRequest, res: NextApiResponse<any | ErrorResponse>) => {
     const token = req.headers.authorization!.replace("Bearer ", "")
 
     let tokenObj: {userId: string}
@@ -66,7 +76,18 @@ router.put(
       return res.status(401).json({error: "Unauthorized"})
     }
 
-    const updated = await database.userModel.updateOne({_id: user._id}, {...req.body, active: true})
+    const cookie = await LibraryService.getCookie()
+    if (!cookie) {
+      return res.status(500).json({error: "Internal Server Error"})
+    }
+
+    const login = await LibraryService.login(req.body.libraryIdentifier, req.body.libraryPassword, cookie)
+
+    if (!login.includes(req.body.libraryIdentifier)) {
+      return res.status(400).json({error: "Incorrect Credentials", message: "Library credentials are incorrect"})
+    }
+
+    const updated = await database.userModel.updateOne({_id: user._id}, {...req.body, active: true}, {new: true})
 
     res.status(200).json(updated)
   },

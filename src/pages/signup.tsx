@@ -1,10 +1,7 @@
 import {ArrowForwardIcon} from "@chakra-ui/icons"
 import {Box, Button, FormControl, FormLabel, Heading, Input, Link, Stack} from "@chakra-ui/react"
-import getConfig from "next/config"
 import {useRouter} from "next/router"
 import {useState} from "react"
-
-const {publicRuntimeConfig} = getConfig()
 
 export default function SignupView() {
   const router = useRouter()
@@ -14,7 +11,7 @@ export default function SignupView() {
   const [passwordRepeat, setPasswordRepeat] = useState<string>("")
 
   const signup = async () => {
-    const response = await fetch(`/api/signup`, {
+    const response = await fetch("/api/signup", {
       method: "POST",
       headers: {
         accept: "application/json",

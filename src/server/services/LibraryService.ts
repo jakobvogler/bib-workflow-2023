@@ -1,6 +1,29 @@
 import {LIBRARY_BASE_URL} from "../../../config"
 import {LibraryHttpRequest} from "../LibraryHttpRequest"
 
+export enum LibraryFloor {
+  ground = "40",
+  first = "42",
+  second = "34",
+  secondGallery = "35",
+  third = "44",
+}
+
+export enum LibraryTimeSlot {
+  morning = "43200",
+  midday = "43260",
+  evening = "43320",
+  night = "43380",
+}
+
+export interface IBookSeatPayload {
+  userId: string
+  roomId: string
+  date: Date
+  floor: LibraryFloor
+  timeSlot: LibraryTimeSlot
+}
+
 export namespace LibraryService {
   export async function getCookie() {
     const {response} = await new LibraryHttpRequest(LIBRARY_BASE_URL + "/sitzplatzreservierung/day.php")
@@ -22,40 +45,38 @@ export namespace LibraryService {
     return body
   }
 
-  export async function login(username: string, password: string, sessionId?: string) {
+  export async function login(username: string, password: string, sessionId: string) {
     const payload = new URLSearchParams()
 
     payload.set("NewUserName", username)
     payload.set("NewUserPassword", password)
     payload.set("Action", "SetName")
 
-    const request = new LibraryHttpRequest(LIBRARY_BASE_URL + "/sitzplatzreservierung/admin.php")
+    const {body} = await new LibraryHttpRequest(LIBRARY_BASE_URL + "/sitzplatzreservierung/admin.php")
       .setMethod("POST")
       .setFormBody(payload)
-
-    if (sessionId) {
-      request.setSessionId(sessionId)
-    }
-
-    const {body} = await request.send<string>()
+      .setSessionId(sessionId)
+      .send<string>()
 
     return body
   }
 
-  export async function bookSeat(sessionId: string, userId: string, roomId: string, date: Date) {
+  export async function bookSeat(body: IBookSeatPayload, sessionId: string) {
+    const {userId, roomId, date, floor, timeSlot} = body
+
     const payload = new URLSearchParams()
 
     payload.set("name", userId)
     payload.set("create_by", userId)
     payload.set("start_day", `${date.getDate()}`)
     payload.set("end_day", `${date.getDate()}`)
-    payload.set("start_month", `${date.getMonth()}`)
-    payload.set("end_month", `${date.getMonth()}`)
+    payload.set("start_month", `${date.getMonth() + 1}`)
+    payload.set("end_month", `${date.getMonth() + 1}`)
     payload.set("start_year", `${date.getFullYear()}`)
     payload.set("end_year", `${date.getFullYear()}`)
-    payload.set("start_seconds", "43380")
-    payload.set("end_seconds", "43380")
-    payload.set("area", "42")
+    payload.set("start_seconds", timeSlot)
+    payload.set("end_seconds", timeSlot)
+    payload.set("area", floor)
     payload.set("rooms[]", roomId)
     payload.set("type", "K")
     payload.set("confirmed", "1")

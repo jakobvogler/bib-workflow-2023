@@ -1,10 +1,10 @@
 export function getCentralEuropeanTime() {
   const date = new Date()
 
-  date.setUTCDate(date.getUTCDate() + 1)
+  date.setUTCHours(date.getUTCHours() + 1)
 
   if (isSummertime()) {
-    date.setUTCDate(date.getUTCDate() + 1)
+    date.setUTCHours(date.getUTCHours() + 1)
   }
 
   return date
