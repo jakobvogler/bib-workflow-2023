@@ -127,7 +127,7 @@ export default function DashboardView() {
         </Box>
         <Box>
           <FormLabel>Permanent Seat</FormLabel>
-          <Input placeholder={"identifier"} value={permanentSeat} onChange={(e) => setPermanentSeat(e.target.value)} />
+          <Input placeholder={"e.g. 704"} value={permanentSeat} onChange={(e) => setPermanentSeat(e.target.value)} />
           <FormHelperText>Please put here the roomId, first floor only</FormHelperText>
         </Box>
         <HStack>
