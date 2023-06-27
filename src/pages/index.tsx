@@ -15,7 +15,7 @@ export default function RedirectView() {
 
     const jwToken: any = jwt.decode(token)
 
-    if (typeof jwToken !== "object" || jwToken.exp < Date.now()) {
+    if (typeof jwToken !== "object" || jwToken.exp < Date.now() / 1000) {
       router.push("/login")
     }
 
