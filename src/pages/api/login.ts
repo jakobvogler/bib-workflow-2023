@@ -30,7 +30,7 @@ router.post(
     const password = createHash("sha256").update(req.body.password).digest("base64url")
 
     const database = await connectDatabase()
-    const user = await database.userModel.findOne({identifier: req.body.username, password: password})
+    const user = await database.userModel.findOne({email: req.body.email, password: password})
 
     if (!user) {
       return res.status(401).json({error: "Unauthorized"})

@@ -25,7 +25,7 @@ router.post(
   }),
   async (req: NextApiRequest & {body: SignupPayload}, res: NextApiResponse<SignupResponse | ErrorResponse>) => {
     const database = await connectDatabase()
-    const user = await database.userModel.findOne({identifier: req.body.username})
+    const user = await database.userModel.findOne({email: req.body.email})
 
     if (user) {
       return res.status(409).json({error: "Conflict", message: "Email already registered"})
