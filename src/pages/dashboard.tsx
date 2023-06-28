@@ -1,5 +1,6 @@
 import {APIService} from "@/client/APIService"
 import {isValidToken} from "@/client/token"
+import StatsView from "@/components/StatsView"
 import {IUser} from "@/server/models/user"
 import {CloseIcon} from "@chakra-ui/icons"
 import {
@@ -138,6 +139,7 @@ export default function DashboardView() {
             <CloseIcon />
           </Button>
         </HStack>
+        {user?.admin && <StatsView />}
         <img src={"/images/help.png"} />
       </Stack>
     </FormControl>

@@ -39,4 +39,13 @@ export namespace APIService {
 
     return body
   }
+
+  export async function getStats() {
+    const {body} = await new HttpRequest("/api/stats")
+      .setMethod("GET")
+      .setHeader("authorization", "Bearer " + getToken())
+      .send<any>()
+
+    return body
+  }
 }
