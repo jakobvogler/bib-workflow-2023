@@ -38,6 +38,13 @@ export namespace PermanentSeatReserver {
         await wait(50)
       }
 
+      request.timeSlot = LibraryTimeSlot.morning
+
+      for (let i = 0; i < 5; i++) {
+        requests.push(LibraryService.bookSeat(request, cookie!))
+        await wait(50)
+      }
+
       await Promise.allSettled(requests)
 
       return true
