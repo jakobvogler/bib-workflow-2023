@@ -13,44 +13,61 @@ export namespace PermanentSeatReserver {
     midnight.setUTCDate(midnight.getUTCDate() + 1)
     midnight.setUTCHours(0, 0, 0, 0)
 
-    try {
-      const cookie = await LibraryService.getCookie()
+    const cookie = await LibraryService.getCookie()
 
-      await LibraryService.login(user.libraryIdentifier!, user.libraryPassword!, cookie!)
+    let isLoggedIn = false
+    for (let i = 0; i < 10; i++) {
+      const body = await LibraryService.login(user.libraryIdentifier!, user.libraryPassword!, cookie!)
 
-      const request: IBookSeatPayload = {
-        userId: user.libraryIdentifier!,
-        roomId: user.permanentSeat!,
-        date: reserveDate,
-        floor: LibraryFloor.first,
-        timeSlot: LibraryTimeSlot.midday,
+      if (body.includes(user.libraryIdentifier!)) {
+        isLoggedIn = true
+        break
       }
+    }
 
-      await wait(midnight.getTime() - getCentralEuropeanTime().getTime() - 10_000)
-
-      while (midnight.getTime() - getCentralEuropeanTime().getTime() > 100) {
-        await wait(100)
-      }
-
-      const requests = []
-      for (let i = 0; i < 5; i++) {
-        requests.push(LibraryService.bookSeat(request, cookie!))
-        await wait(50)
-      }
-
-      request.timeSlot = LibraryTimeSlot.morning
-
-      for (let i = 0; i < 5; i++) {
-        requests.push(LibraryService.bookSeat(request, cookie!))
-        await wait(50)
-      }
-
-      await Promise.allSettled(requests)
-
-      return true
-    } catch (e) {
-      console.log(e)
+    if (!isLoggedIn) {
       return false
     }
+
+    const middayRequest: IBookSeatPayload = {
+      userId: user.libraryIdentifier!,
+      roomId: user.permanentSeat!,
+      date: reserveDate,
+      floor: LibraryFloor.first,
+      timeSlot: LibraryTimeSlot.midday,
+    }
+    const morningRequest: IBookSeatPayload = {...middayRequest, timeSlot: LibraryTimeSlot.morning}
+
+    await wait(midnight.getTime() - getCentralEuropeanTime().getTime() - 10_000)
+
+    while (midnight.getTime() - getCentralEuropeanTime().getTime() > 100) {
+      await wait(100)
+    }
+
+    const requests = []
+    for (let i = 0; i < 10; i++) {
+      requests.push(bookSeatAndCatch(middayRequest, cookie!))
+      await wait(50)
+    }
+
+    for (let i = 0; i < 10; i++) {
+      requests.push(bookSeatAndCatch(middayRequest, cookie!))
+      requests.push(bookSeatAndCatch(morningRequest, cookie!))
+      await wait(50)
+    }
+
+    await Promise.all(requests)
+
+    return true
   }
+}
+
+async function bookSeatAndCatch(body: IBookSeatPayload, sessionId: string) {
+  let response
+
+  try {
+    response = await LibraryService.bookSeat(body, sessionId)
+  } catch (e) {}
+
+  return response
 }
