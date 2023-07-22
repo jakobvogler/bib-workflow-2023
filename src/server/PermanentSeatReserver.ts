@@ -26,6 +26,7 @@ export namespace PermanentSeatReserver {
     }
 
     if (!isLoggedIn) {
+      console.log(`login for user ${user._id} unsuccessful`)
       return false
     }
 
