@@ -55,13 +55,22 @@ export namespace APIService {
     const {body} = await new HttpRequest("/api/permanent-seat/reserve" + queryString)
       .setMethod("GET")
       .setHeader("authorization", "Bearer " + getToken())
-      .send<IUser>()
+      .send<any>()
 
     return body
   }
 
   export async function getStats() {
     const {body} = await new HttpRequest("/api/stats")
+      .setMethod("GET")
+      .setHeader("authorization", "Bearer " + getToken())
+      .send<any>()
+
+    return body
+  }
+
+  export async function getUserData() {
+    const {body} = await new HttpRequest("/api/user-data")
       .setMethod("GET")
       .setHeader("authorization", "Bearer " + getToken())
       .send<any>()
