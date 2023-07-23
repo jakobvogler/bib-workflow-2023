@@ -41,7 +41,7 @@ export default function DashboardView() {
 
   const {isOpen, onOpen, onClose} = useDisclosure()
   const cancelRef = useRef<any>()
-  const [reserveDate, setReserveDate] = useState<Date>()
+  const [reserveDate, setReserveDate] = useState<Date>(new Date())
 
   const getUser = async () => {
     try {
