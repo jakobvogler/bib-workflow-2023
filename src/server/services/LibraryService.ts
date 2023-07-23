@@ -16,6 +16,12 @@ export enum LibraryTimeSlot {
   night = "43380",
 }
 
+export enum LibraryIllegalTimeSlot {
+  morningAndMidday = "43201",
+  middayAndEvening = "43261",
+  eveningAndNight = "43321",
+}
+
 export interface IBookSeatPayload {
   userId: string
   roomId: string
