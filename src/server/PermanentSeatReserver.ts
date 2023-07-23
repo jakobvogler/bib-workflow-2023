@@ -1,17 +1,19 @@
 import {getCentralEuropeanTime} from "@/utils/time"
 import {wait} from "@/utils/wait"
 import {IUser} from "./models/user"
-import {IBookSeatPayload, LibraryFloor, LibraryService, LibraryTimeSlot} from "./services/LibraryService"
+import {
+  IBookSeatPayload,
+  LibraryFloor,
+  LibraryIllegalTimeSlot,
+  LibraryService,
+  LibraryTimeSlot,
+} from "./services/LibraryService"
 
 export namespace PermanentSeatReserver {
   export async function startWorkflow(user: IUser) {
-    const reserveDate = new Date()
+    let reserveDate = new Date()
     reserveDate.setUTCHours(reserveDate.getUTCHours() + 5)
     reserveDate.setUTCDate(reserveDate.getUTCDate() + 3)
-
-    const midnight = new Date()
-    midnight.setUTCDate(midnight.getUTCDate() + 1)
-    midnight.setUTCHours(0, 0, 0, 0)
 
     const cookie = await LibraryService.getCookie()
 
@@ -30,37 +32,67 @@ export namespace PermanentSeatReserver {
       return false
     }
 
-    const middayRequest: IBookSeatPayload = {
-      userId: user.libraryIdentifier!,
-      roomId: user.permanentSeat!,
-      date: reserveDate,
-      floor: LibraryFloor.first,
-      timeSlot: LibraryTimeSlot.midday,
-    }
-    const morningRequest: IBookSeatPayload = {...middayRequest, timeSlot: LibraryTimeSlot.morning}
-
-    await wait(midnight.getTime() - getCentralEuropeanTime().getTime() - 10_000)
-
-    while (midnight.getTime() - getCentralEuropeanTime().getTime() > 100) {
-      await wait(100)
+    if (user.mergeReserve) {
+      await reserveMerged(user, reserveDate, cookie!)
     }
 
-    const requests = []
-    for (let i = 0; i < 10; i++) {
-      requests.push(bookSeatAndCatch(middayRequest, cookie!))
-      await wait(50)
-    }
-
-    for (let i = 0; i < 10; i++) {
-      requests.push(bookSeatAndCatch(middayRequest, cookie!))
-      requests.push(bookSeatAndCatch(morningRequest, cookie!))
-      await wait(50)
-    }
-
-    await Promise.all(requests)
+    await reserveRespectively(user, reserveDate, cookie!)
 
     return true
   }
+}
+
+async function reserveRespectively(user: IUser, reserveDate: Date, cookie: string) {
+  const middayRequest: IBookSeatPayload = {
+    userId: user.libraryIdentifier!,
+    roomId: user.permanentSeat!,
+    date: reserveDate,
+    floor: LibraryFloor.first,
+    startTimeSlot: LibraryTimeSlot.midday,
+    endTimeSlot: LibraryTimeSlot.midday,
+  }
+  const morningRequest: IBookSeatPayload = {
+    ...middayRequest,
+    startTimeSlot: LibraryTimeSlot.morning,
+    endTimeSlot: LibraryTimeSlot.morning,
+  }
+
+  await untilMidnight()
+
+  const requests = []
+  for (let i = 0; i < 10; i++) {
+    requests.push(bookSeatAndCatch(middayRequest, cookie))
+    await wait(50)
+  }
+
+  for (let i = 0; i < 10; i++) {
+    requests.push(bookSeatAndCatch(middayRequest, cookie))
+    requests.push(bookSeatAndCatch(morningRequest, cookie))
+    await wait(50)
+  }
+
+  await Promise.all(requests)
+}
+
+async function reserveMerged(user: IUser, reserveDate: Date, cookie: string) {
+  const request: IBookSeatPayload = {
+    userId: user.libraryIdentifier!,
+    roomId: user.permanentSeat!,
+    date: reserveDate,
+    floor: LibraryFloor.first,
+    startTimeSlot: LibraryIllegalTimeSlot.morningAndMidday,
+    endTimeSlot: LibraryIllegalTimeSlot.morningAndMidday,
+  }
+
+  await untilMidnight()
+
+  const requests = []
+  for (let i = 0; i < 10; i++) {
+    requests.push(bookSeatAndCatch(request, cookie))
+    await wait(50)
+  }
+
+  await Promise.all(requests)
 }
 
 async function bookSeatAndCatch(body: IBookSeatPayload, sessionId: string) {
@@ -71,4 +103,16 @@ async function bookSeatAndCatch(body: IBookSeatPayload, sessionId: string) {
   } catch (e) {}
 
   return response
+}
+
+async function untilMidnight() {
+  const midnight = new Date()
+  midnight.setUTCDate(midnight.getUTCDate() + 1)
+  midnight.setUTCHours(0, 0, 0, 0)
+
+  await wait(midnight.getTime() - getCentralEuropeanTime().getTime() - 10_000)
+
+  while (midnight.getTime() - getCentralEuropeanTime().getTime() > 100) {
+    await wait(100)
+  }
 }

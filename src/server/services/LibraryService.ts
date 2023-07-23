@@ -27,7 +27,8 @@ export interface IBookSeatPayload {
   roomId: string
   date: Date
   floor: LibraryFloor
-  timeSlot: LibraryTimeSlot
+  startTimeSlot: LibraryTimeSlot | LibraryIllegalTimeSlot
+  endTimeSlot: LibraryTimeSlot | LibraryIllegalTimeSlot
 }
 
 export namespace LibraryService {
@@ -68,7 +69,7 @@ export namespace LibraryService {
   }
 
   export async function bookSeat(body: IBookSeatPayload, sessionId: string) {
-    const {userId, roomId, date, floor, timeSlot} = body
+    const {userId, roomId, date, floor, startTimeSlot, endTimeSlot} = body
 
     const payload = new URLSearchParams()
 
@@ -80,8 +81,8 @@ export namespace LibraryService {
     payload.set("end_month", `${date.getMonth() + 1}`)
     payload.set("start_year", `${date.getFullYear()}`)
     payload.set("end_year", `${date.getFullYear()}`)
-    payload.set("start_seconds", timeSlot)
-    payload.set("end_seconds", timeSlot)
+    payload.set("start_seconds", startTimeSlot)
+    payload.set("end_seconds", endTimeSlot)
     payload.set("area", floor)
     payload.set("rooms[]", roomId)
     payload.set("type", "K")

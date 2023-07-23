@@ -4,6 +4,12 @@ import StatsView from "@/components/StatsView"
 import {IUser} from "@/server/models/user"
 import {CloseIcon} from "@chakra-ui/icons"
 import {
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogOverlay,
   Badge,
   Box,
   Button,
@@ -14,10 +20,12 @@ import {
   Heading,
   Input,
   Stack,
+  Switch,
+  useDisclosure,
   useToast,
 } from "@chakra-ui/react"
 import {useRouter} from "next/router"
-import {useEffect, useState} from "react"
+import {useEffect, useRef, useState} from "react"
 
 export default function DashboardView() {
   const router = useRouter()
@@ -29,6 +37,11 @@ export default function DashboardView() {
   const [libraryIdentifier, setLibraryIdentifier] = useState<string>("")
   const [libraryPassword, setLibraryPassword] = useState<string>("")
   const [permanentSeat, setPermanentSeat] = useState<string>("")
+  const [mergeReserve, setMergeReserve] = useState<boolean>()
+
+  const {isOpen, onOpen, onClose} = useDisclosure()
+  const cancelRef = useRef<any>()
+  const [reserveDate, setReserveDate] = useState<Date>()
 
   const getUser = async () => {
     try {
@@ -54,7 +67,12 @@ export default function DashboardView() {
     })
 
     try {
-      const user = (await APIService.updateUser({libraryIdentifier, libraryPassword, permanentSeat})) as IUser
+      const user = (await APIService.updateUser({
+        libraryIdentifier,
+        libraryPassword,
+        permanentSeat,
+        mergeReserve,
+      })) as IUser
       setUser(user)
       toast.update("update", {title: "Successs", status: "success"})
     } catch (e: any) {
@@ -80,6 +98,23 @@ export default function DashboardView() {
     }
   }
 
+  const reserveNow = async () => {
+    toast({
+      id: "reserveNow",
+      title: "Reserving",
+      position: "top-right",
+      status: "loading",
+      isClosable: false,
+    })
+
+    try {
+      await APIService.reservePermanentSeat({reserveDate})
+      toast.update("reserveNow", {title: "Successs", status: "success"})
+    } catch (e: any) {
+      toast.update("reserveNow", {title: e.body?.error, description: e.body?.message, status: "error"})
+    }
+  }
+
   useEffect(() => {
     getUser()
   }, [])
@@ -98,50 +133,97 @@ export default function DashboardView() {
     setLibraryIdentifier(user.libraryIdentifier ?? "")
     setLibraryPassword(user.libraryPassword ?? "")
     setPermanentSeat(user.permanentSeat ?? "")
+    setMergeReserve(user.mergeReserve)
   }, [user])
 
   return (
-    <FormControl isRequired>
-      <Stack maxW={"80"} spacing={"4"}>
-        <Box w={"fit-content"}>
-          {user?.active && <Badge colorScheme="green">active</Badge>}
-          {!user?.active && <Badge colorScheme="red">inactive</Badge>}
-          <Heading pr={"4"}>Dashboard</Heading>
-        </Box>
-        <Box>
-          <FormLabel>Library Identifier</FormLabel>
-          <Input
-            placeholder={"identifier"}
-            value={libraryIdentifier}
-            onChange={(e) => setLibraryIdentifier(e.target.value)}
-          />
-          <FormHelperText>Please use the library number, not the student number starting with '@'</FormHelperText>
-        </Box>
-        <Box>
-          <FormLabel>Library Password</FormLabel>
-          <Input
-            type={"password"}
-            placeholder={"password"}
-            value={libraryPassword}
-            onChange={(e) => setLibraryPassword(e.target.value)}
-          />
-        </Box>
-        <Box>
-          <FormLabel>Permanent Seat</FormLabel>
-          <Input placeholder={"e.g. 704"} value={permanentSeat} onChange={(e) => setPermanentSeat(e.target.value)} />
-          <FormHelperText>Please put here the roomId, first floor only</FormHelperText>
-        </Box>
-        <HStack>
-          <Button type={"submit"} colorScheme={"blue"} onClick={update}>
-            Update
-          </Button>
-          <Button onClick={disable}>
-            <CloseIcon />
-          </Button>
-        </HStack>
-        {user?.admin && <StatsView />}
-        <img src={"/images/help.png"} />
-      </Stack>
-    </FormControl>
+    <>
+      <FormControl isRequired>
+        <Stack maxW={"80"} spacing={"4"}>
+          <Box w={"fit-content"}>
+            {user?.active && <Badge colorScheme="green">active</Badge>}
+            {!user?.active && <Badge colorScheme="red">inactive</Badge>}
+            <Heading pr={"4"}>Dashboard</Heading>
+          </Box>
+          <Box>
+            <FormLabel>Library Identifier</FormLabel>
+            <Input
+              placeholder={"identifier"}
+              value={libraryIdentifier}
+              onChange={(e) => setLibraryIdentifier(e.target.value)}
+            />
+            <FormHelperText>Please use the library number, not the student number starting with '@'</FormHelperText>
+          </Box>
+          <Box>
+            <FormLabel>Library Password</FormLabel>
+            <Input
+              type={"password"}
+              placeholder={"password"}
+              value={libraryPassword}
+              onChange={(e) => setLibraryPassword(e.target.value)}
+            />
+          </Box>
+          <Box>
+            <FormLabel>Permanent Seat</FormLabel>
+            <Input placeholder={"e.g. 704"} value={permanentSeat} onChange={(e) => setPermanentSeat(e.target.value)} />
+            <FormHelperText>Please put here the roomId, first floor only</FormHelperText>
+          </Box>
+          <Box>
+            <FormLabel>Merge Timeslots</FormLabel>
+            <HStack>
+              <FormHelperText>Whether morning and midday should be reserved as one reservation</FormHelperText>
+              <Switch isChecked={mergeReserve} onChange={(e) => setMergeReserve(!mergeReserve)} />
+            </HStack>
+          </Box>
+          <HStack>
+            <Button type={"submit"} colorScheme={"blue"} onClick={update}>
+              Update
+            </Button>
+            <Button onClick={disable}>
+              <CloseIcon />
+            </Button>
+            <Button colorScheme={"purple"} onClick={onOpen}>
+              Reserve Now
+            </Button>
+          </HStack>
+          {user?.admin && <StatsView />}
+          <img src={"/images/help.png"} />
+        </Stack>
+      </FormControl>
+
+      <AlertDialog isOpen={isOpen} leastDestructiveRef={cancelRef} onClose={onClose}>
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Select Date
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              <Input
+                type={"date"}
+                value={reserveDate?.toISOString().slice(0, 10)}
+                onChange={(e) => setReserveDate(new Date(e.target.value))}
+              />
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onClose}>
+                Cancel
+              </Button>
+              <Button
+                colorScheme="purple"
+                onClick={() => {
+                  onClose()
+                  reserveNow()
+                }}
+                ml={3}
+              >
+                Reserve
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+    </>
   )
 }
