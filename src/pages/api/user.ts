@@ -18,6 +18,7 @@ interface UpdateUserRequest extends NextApiRequest {
     libraryIdentifier: string
     libraryPassword: string
     permanentSeat: string
+    mergeReserve?: boolean
   }
 }
 
@@ -27,6 +28,7 @@ router.put(
       libraryIdentifier: Joi.string().required(),
       libraryPassword: Joi.string().required(),
       permanentSeat: Joi.string().required(),
+      mergeReserve: Joi.boolean().optional(),
     }),
   }),
   async (req: UpdateUserRequest, res: NextApiResponse<any | ErrorResponse>) => {

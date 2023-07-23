@@ -5,6 +5,11 @@ export interface IUpdateUserPayload {
   libraryIdentifier: string
   libraryPassword: string
   permanentSeat: string
+  mergeReserve?: boolean
+}
+
+export interface IReserveNowQuery {
+  reserveDate?: Date
 }
 
 export namespace APIService {
@@ -33,6 +38,21 @@ export namespace APIService {
 
   export async function disablePermanentSeat() {
     const {body} = await new HttpRequest("/api/permanent-seat/disable")
+      .setMethod("GET")
+      .setHeader("authorization", "Bearer " + getToken())
+      .send<IUser>()
+
+    return body
+  }
+
+  export async function reservePermanentSeat(query: IReserveNowQuery) {
+    let queryString = ""
+
+    if (query.reserveDate) {
+      queryString = `?reserveDate=${query.reserveDate.toISOString()}`
+    }
+
+    const {body} = await new HttpRequest("/api/permanent-seat/reserve" + queryString)
       .setMethod("GET")
       .setHeader("authorization", "Bearer " + getToken())
       .send<IUser>()

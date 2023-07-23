@@ -11,6 +11,7 @@ export interface IUser extends Mongoose.Document {
   libraryPassword?: string
 
   permanentSeat?: string
+  mergeReserve?: boolean
 
   invite?: string
 
@@ -31,6 +32,7 @@ export const UserSchema = new Mongoose.Schema(
     libraryPassword: {type: String, required: false},
 
     permanentSeat: {type: String, required: false},
+    mergeReserve: {type: Boolean, required: false},
 
     invite: {type: String, required: false},
 
