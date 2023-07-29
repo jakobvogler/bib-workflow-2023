@@ -7,6 +7,7 @@ import {
   LibraryService,
   LibraryTimeSlot,
 } from "@/server/services/LibraryService"
+import {getCentralEuropeanTime} from "@/utils/time"
 import type {NextApiRequest, NextApiResponse} from "next"
 
 const router = createRouter()
@@ -30,7 +31,7 @@ router.get(async (req: NextApiRequest & {query: {reserveDate?: string}}, res: Ne
     throw new ApiError(400, "Login Failure", "Could not login")
   }
 
-  let reserveDate = new Date()
+  let reserveDate = getCentralEuropeanTime()
   if (req.query.reserveDate) {
     reserveDate = new Date(req.query.reserveDate)
   }

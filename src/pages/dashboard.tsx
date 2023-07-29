@@ -2,6 +2,7 @@ import {APIService} from "@/client/APIService"
 import {isValidToken} from "@/client/token"
 import AdminView from "@/components/AdminView"
 import {IUser} from "@/server/models/user"
+import {getCentralEuropeanTime} from "@/utils/time"
 import {CloseIcon} from "@chakra-ui/icons"
 import {
   AlertDialog,
@@ -41,7 +42,7 @@ export default function DashboardView() {
 
   const {isOpen, onOpen, onClose} = useDisclosure()
   const cancelRef = useRef<any>()
-  const [reserveDate, setReserveDate] = useState<Date>(new Date())
+  const [reserveDate, setReserveDate] = useState<Date>(getCentralEuropeanTime())
 
   const getUser = async () => {
     try {
