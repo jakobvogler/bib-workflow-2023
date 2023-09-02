@@ -36,7 +36,7 @@ router.post(
       return res.status(401).json({error: "Unauthorized"})
     }
 
-    const token = jwt.sign({userId: String(user._id)}, serverRuntimeConfig.HASH_SECRET, {expiresIn: 60 * 60})
+    const token = jwt.sign({userId: String(user._id)}, serverRuntimeConfig.HASH_SECRET, {expiresIn: 30 * 24 * 60 * 60})
     res.status(200).json({token: token})
   },
 )
